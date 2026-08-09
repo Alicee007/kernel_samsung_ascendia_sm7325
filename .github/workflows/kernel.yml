@@ -25,7 +25,7 @@ jobs:
         export CC=clang
         export LLVM=1
         make vendor/m52xq_swa_ins_defconfig
-        make -j$(nproc --all)
+        make -j$(nproc --all) 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
@@ -35,3 +35,9 @@ jobs:
           out/arch/arm64/boot/Image
           out/arch/arm64/boot/Image.gz
           out/arch/arm64/boot/dtbo.img
+- name: Upload build log
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-log
+        path: build.log
