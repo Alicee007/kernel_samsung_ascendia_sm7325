@@ -16,7 +16,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y git-core gnupg flex bison build-essential zip curl zlib1g-dev libc6-dev-i386 libncurses5-dev libssl-dev libelf-dev bc python3 clang lld llvm aarch64-linux-gnu-gcc
+        sudo apt-get install -y git-core gnupg flex bison build-essential zip curl zlib1g-dev libc6-dev-i386 libncurses5-dev libssl-dev libelf-dev bc python3 clang lld llvm gcc-aarch64-linux-gnu
 
     - name: Build kernel
       run: |
