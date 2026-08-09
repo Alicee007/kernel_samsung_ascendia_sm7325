@@ -16,13 +16,13 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y git-core gnupg flex bison build-essential zip curl zlib1g-dev libc6-dev-i386 libncurses5-dev libssl-dev libelf-dev bc python3 clang lld llvm gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
+        sudo apt-get install -y git-core gnupg flex bison build-essential zip curl zlib1g-dev libc6-dev-i386 libncurses5-dev libssl-dev libelf-dev bc python3 clang lld llvm gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi clang-12
 
     - name: Build kernel
       run: |
         export ARCH=arm64
         export CROSS_COMPILE=aarch64-linux-gnu-
-        export CC=clang
+        export CC=clang-12
         export LLVM=1
         make vendor/m52xq_swa_ins_defconfig
         export CLANG_TRIPLE=aarch64-linux-gnu-
