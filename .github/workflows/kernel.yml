@@ -27,7 +27,7 @@ jobs:
         make vendor/m52xq_swa_ins_defconfig
         export CLANG_TRIPLE=aarch64-linux-gnu-
         export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
-        make -j$(nproc --all) 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
+        make -j$(nproc --all) KBUILD_CFLAGS+="-I$(pwd)/kernel/sched/walt" 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
 
     - name: Upload artifacts
       if: success()
