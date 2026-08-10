@@ -24,6 +24,12 @@ jobs:
         wget -q "https://github.com/ZyCromerZ/Clang/releases/download/13.0.1-20230207-release/Clang-13.0.1-20230207.tar.gz" -O ~/toolchain/clang.tar.gz
         tar -xf ~/toolchain/clang.tar.gz -C ~/toolchain/
 
+    - name: Fix trace include path
+      run: |
+        ln -sf $(pwd)/kernel/sched/walt/trace.h $(pwd)/include/trace/walt_trace.h
+        mkdir -p $(pwd)/kernel/sched/walt/kernel/sched/walt
+        ln -sf $(pwd)/kernel/sched/walt/trace.h $(pwd)/kernel/sched/walt/kernel/sched/walt/trace.h
+    
     - name: Build kernel
       run: |
         export ARCH=arm64
