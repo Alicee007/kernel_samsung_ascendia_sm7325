@@ -108,3 +108,4 @@ obj-y += drivers/
 else
 $(info Target not found)
 endif
+ccflags-y += -Wno-strict-prototypes
