@@ -1,0 +1,96 @@
+name: Build Kernel Droidspaces M52
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Liberar Espaço em Disco
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 8192
+          swap-size-mb: 1024
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
+
+      - name: Instalar Dependências do Compilador
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git bc bison flex libssl-dev libelf-dev make libc6-dev clang lld zip python3 cpio
+
+      - name: Clonar Fontes (Kernel, Clang e AnyKernel3)
+        run: |
+          git clone --depth=1 https://github.com/LineageOS/android_kernel_samsung_sm7325.git -b lineage-21 kernel
+          git clone --depth=1 https://github.com/kdrag0n/proton-clang.git clang
+          git clone --depth=1 https://github.com/osm0sis/AnyKernel3.git anykernel
+
+      - name: Injetar Flags do Droidspaces no defconfig
+        run: |
+          cd kernel
+          DEFCONFIG=$(find arch/arm64/configs -name "*m52xq*" -o -name "*sm7325*" | head -n 1)
+          echo "Aplicando flags em: $DEFCONFIG"
+          cat << 'EOF' >> $DEFCONFIG
+
+          # DROIDSPACES KERNEL FLAGS
+          CONFIG_NAMESPACES=y
+          CONFIG_UTS_NS=y
+          CONFIG_IPC_NS=y
+          CONFIG_USER_NS=y
+          CONFIG_PID_NS=y
+          CONFIG_NET_NS=y
+          CONFIG_CGROUP_NAMESPACE=y
+          CONFIG_CGROUPS=y
+          CONFIG_CGROUP_DEVICE=y
+          CONFIG_CGROUP_CPUACCT=y
+          CONFIG_CGROUP_SCHED=y
+          CONFIG_BLK_CGROUP=y
+          CONFIG_MEMORY_CGROUP=y
+          CONFIG_CPUSETS=y
+          CONFIG_VETH=y
+          CONFIG_MACVLAN=y
+          CONFIG_BRIDGE=y
+          CONFIG_BRIDGE_NETFILTER=y
+          CONFIG_POSIX_MQUEUE=y
+          CONFIG_OVERLAY_FS=y
+          CONFIG_FHANDLE=y
+          CONFIG_BINFMT_MISC=y
+          EOF
+
+      - name: Compilar Kernel
+        run: |
+          cd kernel
+          export PATH="$GITHUB_WORKSPACE/clang/bin:$PATH"
+          export ARCH=arm64
+          export SUBARCH=arm64
+          export CROSS_COMPILE=aarch64-linux-gnu-
+          export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+          export CC=clang
+
+          DEFCONFIG_PATH=$(find arch/arm64/configs -name "*m52xq*" -o -name "*sm7325*" | head -n 1)
+          REL_CONFIG=$(echo $DEFCONFIG_PATH | sed 's|arch/arm64/configs/||')
+
+          make O=out $REL_CONFIG
+          make O=out -j$(nproc --all)
+
+      - name: Empacotar Arquivos no AnyKernel3
+        run: |
+          cd anykernel
+          # Copia a imagem binária gerada
+          IMAGE=$(find ../kernel/out/arch/arm64/boot/ -name "Image*" -type f | head -n 1)
+          cp $IMAGE .
+          
+          # Copia a tabela DTBO se gerada (necessária para conectividade em processadores SM7325)
+          if [ -f ../kernel/out/arch/arm64/boot/dtbo.img ]; then
+            cp ../kernel/out/arch/arm64/boot/dtbo.img .
+          fi
+
+          zip -r9 Droidspaces-Kernel-M52.zip * -x .git README.md *placeholder
+
+      - name: Disponibilizar ZIP para Download
+        uses: actions/upload-artifact@v4
+        with:
+          name: Droidspaces-Kernel-M52
+          path: anykernel/Droidspaces-Kernel-M52.zip
