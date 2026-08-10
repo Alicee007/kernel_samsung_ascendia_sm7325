@@ -37,6 +37,21 @@ jobs:
         make vendor/m52xq_swa_ins_defconfig
         make -j$(nproc --all) KCFLAGS="-I$(pwd)/kernel/sched/walt" 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
 
+    - name: Find and upload artifacts
+      if: success()
+      run: |
+        find . -name "Image" -o -name "Image.gz" -o -name "dtbo.img" 2>/dev/null
+    - name: Upload artifacts
+      if: success()
+      uses: actions/upload-artifact@v4
+      with:
+        name: kernel-m52xq
+        path: |
+          arch/arm64/boot/Image
+          arch/arm64/boot/Image.gz
+          arch/arm64/boot/dtbo.img
+        if-no-files-found: warn
+        
     - name: Upload artifacts
       if: success()
       uses: actions/upload-artifact@v4
