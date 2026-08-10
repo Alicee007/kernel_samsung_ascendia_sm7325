@@ -21,13 +21,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y git bc bison flex libssl-dev libelf-dev make libc6-dev zip python3 cpio gcc g++ gcc-aarch64-linux-gnu
 
-      - name: Baixar AOSP Clang e Fontes
+      - name: Baixar Clang e Fontes
         run: |
-          # Baixa o AOSP Clang oficial do Android 14
-          mkdir clang
-          curl -sL https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android14-release/clang-r487594.tar.gz | tar -xzC clang
+          # Clona a toolchain Clang atualizada via Git (evita falhas de download via HTTP)
+          git clone --depth=1 https://gitlab.com/ZyClang/clang.git clang
 
-          # Clona a Kernel Tree e AnyKernel3
+          # Clona a Kernel Tree do M52 e AnyKernel3
           git clone --depth=1 https://github.com/LineageOS/android_kernel_samsung_sm7325.git -b lineage-21 kernel
           git clone --depth=1 https://github.com/osm0sis/AnyKernel3.git anykernel
 
