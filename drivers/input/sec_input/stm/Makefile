@@ -12,4 +12,4 @@ obj-$(CONFIG_TOUCHSCREEN_STM) += $(TARGET).o
 obj-$(CONFIG_TOUCHSCREEN_STM_SPI) += $(TARGET_SPI).o
 
 ccflags-y += -Wformat
-
+CFLAGS_stm_core.o += -Wno-error
