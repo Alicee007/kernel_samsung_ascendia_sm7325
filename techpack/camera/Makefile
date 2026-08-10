@@ -109,3 +109,4 @@ else
 $(info Target not found)
 endif
 ccflags-y += -Wno-strict-prototypes
+ccflags-y += -Wno-error
