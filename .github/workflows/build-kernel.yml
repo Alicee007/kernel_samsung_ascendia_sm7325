@@ -16,17 +16,13 @@ jobs:
           remove-android: 'true'
           remove-haskell: 'true'
 
-      - name: Instalar Dependências do Compilador
+      - name: Instalar Dependências e Toolchain do Sistema
         run: |
           sudo apt-get update
-          sudo apt-get install -y git bc bison flex libssl-dev libelf-dev make libc6-dev zip python3 cpio gcc g++ gcc-aarch64-linux-gnu
+          sudo apt-get install -y git bc bison flex libssl-dev libelf-dev make libc6-dev zip python3 cpio gcc g++ gcc-aarch64-linux-gnu clang lld llvm
 
-      - name: Baixar Clang e Fontes
+      - name: Clonar Kernel Tree e AnyKernel3
         run: |
-          # Clona a toolchain Clang atualizada via Git (evita falhas de download via HTTP)
-          git clone --depth=1 https://gitlab.com/ZyClang/clang.git clang
-
-          # Clona a Kernel Tree do M52 e AnyKernel3
           git clone --depth=1 https://github.com/LineageOS/android_kernel_samsung_sm7325.git -b lineage-21 kernel
           git clone --depth=1 https://github.com/osm0sis/AnyKernel3.git anykernel
 
@@ -65,17 +61,15 @@ jobs:
       - name: Compilar Kernel
         run: |
           cd kernel
-          export PATH="$GITHUB_WORKSPACE/clang/bin:$PATH"
           export ARCH=arm64
           export SUBARCH=arm64
           export CROSS_COMPILE=aarch64-linux-gnu-
-          export CC=clang
 
           DEFCONFIG_PATH=$(find arch/arm64/configs -name "*m52xq*" -o -name "*sm7325*" | head -n 1)
           REL_CONFIG=$(echo $DEFCONFIG_PATH | sed 's|arch/arm64/configs/||')
 
-          make O=out HOSTCC=gcc HOSTCXX=g++ HOSTLD=/usr/bin/ld $REL_CONFIG
-          make O=out HOSTCC=gcc HOSTCXX=g++ HOSTLD=/usr/bin/ld -j$(nproc --all)
+          make O=out CC=clang LD=ld.lld HOSTCC=gcc HOSTCXX=g++ $REL_CONFIG
+          make O=out CC=clang LD=ld.lld HOSTCC=gcc HOSTCXX=g++ -j$(nproc --all)
 
       - name: Empacotar Arquivos no AnyKernel3
         run: |
