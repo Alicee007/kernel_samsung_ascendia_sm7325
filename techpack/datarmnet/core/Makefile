@@ -11,3 +11,4 @@ modules_install:
 
 clean:
 	$(MAKE) -C $(KERNEL_SRC) M=$(PWD) clean
+ccflags-y += -I$(srctree)/techpack/datarmnet/core
