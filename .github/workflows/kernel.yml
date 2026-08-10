@@ -21,7 +21,7 @@ jobs:
     - name: Download Android Clang toolchain
       run: |
         mkdir -p ~/toolchain
-        wget -q https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android12-release/clang-r383902b1.tar.gz -O ~/toolchain/clang.tar.gz
+        wget -q "https://github.com/ZyCromerZ/Clang/releases/download/11.0.1-20210616-release/Clang-11.0.1-20210616.tar.gz" -O ~/toolchain/clang.tar.gz
         tar -xf ~/toolchain/clang.tar.gz -C ~/toolchain/
 
     - name: Build kernel
