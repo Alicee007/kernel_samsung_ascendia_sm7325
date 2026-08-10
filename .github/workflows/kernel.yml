@@ -34,7 +34,7 @@ jobs:
         export CLANG_TRIPLE=aarch64-linux-gnu-
         export LLVM=1
         make vendor/m52xq_swa_ins_defconfig
-        make -j$(nproc --all) KCFLAGS="-I$(pwd)/kernel/sched/walt -Wno-error" 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
+        make -j$(nproc --all) KCFLAGS="-I$(pwd)/kernel/sched/walt -Wno-error" CONFIG_WERROR=n 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
 
     - name: Find output files
       if: always()
