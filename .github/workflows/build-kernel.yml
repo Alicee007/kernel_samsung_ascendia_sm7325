@@ -19,20 +19,24 @@ jobs:
       - name: Instalar Dependências do Compilador
         run: |
           sudo apt-get update
-          sudo apt-get install -y git bc bison flex libssl-dev libelf-dev make libc6-dev clang lld zip python3 cpio gcc g++ gcc-aarch64-linux-gnu
+          sudo apt-get install -y git bc bison flex libssl-dev libelf-dev make libc6-dev zip python3 cpio gcc g++ gcc-aarch64-linux-gnu
 
-      - name: Clonar Fontes (Kernel, Clang e AnyKernel3)
+      - name: Baixar AOSP Clang e Fontes
         run: |
+          # Baixa o AOSP Clang oficial do Android 14
+          mkdir clang
+          curl -sL https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android14-release/clang-r487594.tar.gz | tar -xzC clang
+
+          # Clona a Kernel Tree e AnyKernel3
           git clone --depth=1 https://github.com/LineageOS/android_kernel_samsung_sm7325.git -b lineage-21 kernel
-          git clone --depth=1 https://github.com/kdrag0n/proton-clang.git clang
           git clone --depth=1 https://github.com/osm0sis/AnyKernel3.git anykernel
 
       - name: Injetar Flags do Droidspaces no defconfig
         run: |
           cd kernel
-          DEFCONFIG=$(find arch/arm64/configs -name "*m52xq*" -o -name "*sm7325*" | head -n 1)
-          echo "Aplicando flags em: $DEFCONFIG"
-          cat << 'EOF' >> $DEFCONFIG
+          DEFCONFIG_PATH=$(find arch/arm64/configs -name "*m52xq*" -o -name "*sm7325*" | head -n 1)
+          echo "Aplicando flags em: $DEFCONFIG_PATH"
+          cat << 'EOF' >> $DEFCONFIG_PATH
 
           # DROIDSPACES KERNEL FLAGS
           CONFIG_NAMESPACES=y
@@ -66,16 +70,13 @@ jobs:
           export ARCH=arm64
           export SUBARCH=arm64
           export CROSS_COMPILE=aarch64-linux-gnu-
-          export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
           export CC=clang
-          export HOSTCC=gcc
-          export HOSTCXX=g++
 
           DEFCONFIG_PATH=$(find arch/arm64/configs -name "*m52xq*" -o -name "*sm7325*" | head -n 1)
           REL_CONFIG=$(echo $DEFCONFIG_PATH | sed 's|arch/arm64/configs/||')
 
-          make O=out HOSTCC=gcc HOSTCXX=g++ $REL_CONFIG
-          make O=out HOSTCC=gcc HOSTCXX=g++ -j$(nproc --all)
+          make O=out HOSTCC=gcc HOSTCXX=g++ HOSTLD=/usr/bin/ld $REL_CONFIG
+          make O=out HOSTCC=gcc HOSTCXX=g++ HOSTLD=/usr/bin/ld -j$(nproc --all)
 
       - name: Empacotar Arquivos no AnyKernel3
         run: |
